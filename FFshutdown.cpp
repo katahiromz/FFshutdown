@@ -251,6 +251,8 @@ INT FFSHUTDOWN::run(HINSTANCE hInstance, INT nCmdShow)
         return 1;
     }
 
+    FreeConsole();
+
     const TCHAR *action = NULL;
     switch (m_action)
     {
