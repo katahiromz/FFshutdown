@@ -20,7 +20,7 @@ void usage(void)
         "  -restart     Restart Windows.\n"
         "  -shutdown    Shutdown Windows.\n"
         "  -force       Force mode (not recommended).\n"
-        "  -t SECONDS   The timeout (default: 10)\n"
+        "  -t SECONDS   The timeout (default: 10).\n"
         "  -can-cancel  Enable user cancel.\n"
         "  -help        Display this message.\n"
         "  -version     Display version info.\n");

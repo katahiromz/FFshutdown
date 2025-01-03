@@ -13,7 +13,7 @@ Options:
   -restart     Restart Windows.
   -shutdown    Shutdown Windows.
   -force       Force mode (not recommended).
-  -t SECONDS   The timeout (default: 10)
+  -t SECONDS   The timeout (default: 10).
   -can-cancel  Enable user cancel.
   -help        Display this message.
   -version     Display version info.
