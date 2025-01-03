@@ -29,7 +29,7 @@ LPCTSTR get_text(INT id)
                    TEXT("  -shutdown    Windowsをシャットダウンする。\n")
                    TEXT("  -force       強制モード (非推奨)。\n")
                    TEXT("  -t 秒        タイムアウト (デフォルト: 10).\n")
-                   TEXT("  -can-cancel  ユーザーキャンセルを有効にする。\n")
+                   TEXT("  -can_cancel  ユーザーキャンセルを有効にする。\n")
                    TEXT("  -help        このメッセージを表示する。\n")
                    TEXT("  -version     バージョン情報を表示する。");
         case 1: return TEXT("エラー: オプション -t は引数が必要です。");
@@ -57,7 +57,7 @@ LPCTSTR get_text(INT id)
                    TEXT("  -shutdown    Shutdown Windows.\n")
                    TEXT("  -force       Force mode (not recommended).\n")
                    TEXT("  -t SECONDS   The timeout (default: 10).\n")
-                   TEXT("  -can-cancel  Enable user cancel.\n")
+                   TEXT("  -can_cancel  Enable user cancel.\n")
                    TEXT("  -help        Display this message.\n")
                    TEXT("  -version     Display version info.");
         case 1: return TEXT("ERROR: Option -t needs an argument.");
@@ -166,7 +166,7 @@ INT FFSHUTDOWN::parse_cmdline(INT argc, LPWSTR *argv)
             }
         }
 
-        if (lstrcmpiW(arg, L"-can-cancel") == 0 || lstrcmpiW(arg, L"--can-cancel") == 0)
+        if (lstrcmpiW(arg, L"-can_cancel") == 0 || lstrcmpiW(arg, L"--can_cancel") == 0)
         {
             m_can_cancel = true;
             continue;

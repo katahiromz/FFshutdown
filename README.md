@@ -16,7 +16,7 @@
   -shutdown    Windows をシャットダウンします。
   -force       強制モード（推奨されません）。
   -t 秒        タイムアウト（デフォルト: 10秒）。
-  -can-cancel  ユーザーキャンセルを有効にします。
+  -can_cancel  ユーザーキャンセルを有効にします。
   -help        このメッセージを表示します。
   -version     バージョン情報を表示します。
 ```
@@ -48,7 +48,7 @@ Options:
   -shutdown    Shutdown Windows.
   -force       Force mode (not recommended).
   -t SECONDS   The timeout (default: 10).
-  -can-cancel  Enable user cancel.
+  -can_cancel  Enable user cancel.
   -help        Display this message.
   -version     Display version info.
 ```
