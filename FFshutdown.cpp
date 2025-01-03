@@ -1,29 +1,89 @@
-// FFshutdown.cpp --- Log-off, restart, or shutdown Windows
+﻿// FFshutdown.cpp --- Log-off, restart, or shutdown Windows
 // License: MIT
 #include <windows.h>
 #include <windowsx.h>
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
+#include <cstdio>
+#include <cstring>
+#include <cassert>
+#include <tchar.h>
+
+inline WORD get_lang_id(void)
+{
+    return PRIMARYLANGID(LANGIDFROMLCID(GetThreadLocale()));
+}
+
+// localization
+LPCTSTR get_text(INT id)
+{
+#ifdef JAPAN
+    if (get_lang_id() == LANG_JAPANESE) // Japone for Japone
+    {
+        switch (id)
+        {
+        case -1: return TEXT("FFshutdown バージョン 0.3 by 片山博文MZ");
+        case 0:
+            return TEXT("使用方法: FFshutdown [オプション]\n")
+                   TEXT("オプション:\n")
+                   TEXT("  -log-off     Windowsをログオフする。\n")
+                   TEXT("  -restart     Windowsを再起動する。\n")
+                   TEXT("  -shutdown    Windowsをシャットダウンする。\n")
+                   TEXT("  -force       強制モード (非推奨)。\n")
+                   TEXT("  -t 秒        タイムアウト (デフォルト: 10).\n")
+                   TEXT("  -can-cancel  ユーザーキャンセルを有効にする。\n")
+                   TEXT("  -help        このメッセージを表示する。\n")
+                   TEXT("  -version     バージョン情報を表示する。");
+        case 1: return TEXT("エラー: オプション -t は引数が必要です。");
+        case 2: return TEXT("エラー: アクションが未指定です。\n");
+        case 3: return TEXT("イベントオブジェクト作成に失敗しました。");
+        case 4: return TEXT("FFshutdown");
+        case 5: return TEXT("スレッド作成に失敗しました。");
+        case 6: return TEXT("ログオフ");
+        case 7: return TEXT("再起動");
+        case 8: return TEXT("シャットダウン");
+        case 9: return TEXT("システムは %s します（%d秒後）...");
+        }
+    }
+    else // The others are Let's la English
+#endif
+    {
+        switch (id)
+        {
+        case -1: return TEXT("FFshutdown version 0.3 by katahiromz");
+        case 0:
+            return TEXT("Usage: FFshutdown [Options]\n")
+                   TEXT("Options:\n")
+                   TEXT("  -log-off     Log off Windows.\n")
+                   TEXT("  -restart     Restart Windows.\n")
+                   TEXT("  -shutdown    Shutdown Windows.\n")
+                   TEXT("  -force       Force mode (not recommended).\n")
+                   TEXT("  -t SECONDS   The timeout (default: 10).\n")
+                   TEXT("  -can-cancel  Enable user cancel.\n")
+                   TEXT("  -help        Display this message.\n")
+                   TEXT("  -version     Display version info.");
+        case 1: return TEXT("ERROR: Option -t needs an argument.");
+        case 2: return TEXT("ERROR: No action specified.\n");
+        case 3: return TEXT("Failed to create an event object.");
+        case 4: return TEXT("FFshutdown");
+        case 5: return TEXT("Failed to create a thread.");
+        case 6: return TEXT("log-off");
+        case 7: return TEXT("reboot");
+        case 8: return TEXT("shutdown");
+        case 9: return TEXT("The system will %s in %d seconds...");
+        }
+    }
+
+    assert(0);
+    return nullptr;
+}
 
 void version(void)
 {
-    std::puts("FFshutdown version 0.0 by katahiromz");
+    _putts(get_text(-1));
 }
 
 void usage(void)
 {
-    std::puts(
-        "Usage: FFshutdown [Options]\n"
-        "Options:\n"
-        "  -log-off     Log off Windows.\n"
-        "  -restart     Restart Windows.\n"
-        "  -shutdown    Shutdown Windows.\n"
-        "  -force       Force mode (not recommended).\n"
-        "  -t SECONDS   The timeout (default: 10).\n"
-        "  -can-cancel  Enable user cancel.\n"
-        "  -help        Display this message.\n"
-        "  -version     Display version info.\n");
+    _putws(get_text(0));
 }
 
 BOOL EnableProcessPriviledge(LPCTSTR pszSE_)
@@ -82,13 +142,13 @@ INT FFSHUTDOWN::parse_cmdline(INT argc, LPWSTR *argv)
         if (lstrcmpiW(arg, L"-help") == 0 || lstrcmpiW(arg, L"--help") == 0)
         {
             usage();
-            return 0;
+            return 1;
         }
 
         if (lstrcmpiW(arg, L"-version") == 0 || lstrcmpiW(arg, L"--version") == 0)
         {
             version();
-            return 0;
+            return 1;
         }
 
         if (lstrcmpiW(arg, L"-t") == 0)
@@ -101,7 +161,7 @@ INT FFSHUTDOWN::parse_cmdline(INT argc, LPWSTR *argv)
             }
             else
             {
-                fprintf(stderr, "ERROR: Option -y needs an option.");
+                _ftprintf(stderr, get_text(1));
                 return 1;
             }
         }
@@ -139,7 +199,7 @@ INT FFSHUTDOWN::parse_cmdline(INT argc, LPWSTR *argv)
 
     if (m_action == ACTION_NONE)
     {
-        fprintf(stderr, "ERROR: No action specified.\n");
+        _ftprintf(stderr, get_text(2));
         return 1;
     }
 
@@ -178,34 +238,34 @@ INT FFSHUTDOWN::run(HINSTANCE hInstance, INT nCmdShow)
     m_hCancelEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
     if (!m_hCancelEvent)
     {
-        MessageBoxA(NULL, "Failed to create an event object.", "FFshutdown", MB_ICONERROR);
+        MessageBox(NULL, get_text(3), get_text(4), MB_ICONERROR);
         return 1;
     }
 
     HANDLE hThread = CreateThread(NULL, 0, ShutdownThreadProc, this, 0, NULL);
     if (!hThread)
     {
-        MessageBoxA(NULL, "Failed to create a thread.", "FFshutdown", MB_ICONERROR);
+        MessageBox(NULL, get_text(5), get_text(4), MB_ICONERROR);
         CloseHandle(m_hCancelEvent);
         m_hCancelEvent = NULL;
         return 1;
     }
 
-    const char *action = NULL;
+    const TCHAR *action = NULL;
     switch (m_action)
     {
     case ACTION_NONE: assert(0); break;
-    case ACTION_LOGOFF: action = "log-off"; break;
-    case ACTION_REBOOT: action = "reboot"; break;
-    case ACTION_SHUTDOWN: action = "shutdown"; break;
+    case ACTION_LOGOFF: action = get_text(6); break;
+    case ACTION_REBOOT: action = get_text(7); break;
+    case ACTION_SHUTDOWN: action = get_text(8); break;
     }
 
     TCHAR szText[256];
-    wsprintf(szText, TEXT("The system will %s in %d seconds."), action, m_timeout);
+    wsprintf(szText, get_text(9), action, m_timeout);
 
     if (m_can_cancel)
     {
-        if (MessageBox(NULL, szText, TEXT("FFshutdown"), MB_ICONWARNING | MB_OKCANCEL) == IDCANCEL)
+        if (MessageBox(NULL, szText, get_text(4), MB_ICONWARNING | MB_OKCANCEL) == IDCANCEL)
         {
             // Cancelled
             m_action = ACTION_NONE;
@@ -216,7 +276,7 @@ INT FFSHUTDOWN::run(HINSTANCE hInstance, INT nCmdShow)
     }
     else
     {
-        MessageBox(NULL, szText, TEXT("FFshutdown"), MB_ICONWARNING | MB_OK);
+        MessageBox(NULL, szText, get_text(4), MB_ICONWARNING | MB_OK);
     }
 
     WaitForSingleObject(hThread, INFINITE);
@@ -242,8 +302,13 @@ INT FFshutdown_main(
     return ffshutdown.run(hInstance, nCmdShow);
 }
 
+#include <clocale>
+
 int main(void)
 {
+    // Unicode console output support
+    std::setlocale(LC_ALL, "");
+
     INT argc;
     LPWSTR *argv = CommandLineToArgvW(GetCommandLineW(), &argc);
     INT ret = FFshutdown_main(GetModuleHandle(NULL), argc, argv, SW_SHOWNORMAL);
